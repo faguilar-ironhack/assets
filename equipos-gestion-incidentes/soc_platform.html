@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOC Platform Capability Matrix</title>
+  <style>
+    :root{
+      --bg:#071018;
+      --panel:#0c1722;
+      --panel2:#101f2c;
+      --line:#1b3447;
+      --text:#e9f4fb;
+      --muted:#8ca8ba;
+      --cyan:#37d6ff;
+      --green:#49e6a2;
+      --orange:#ffb45c;
+      --purple:#a889ff;
+      --red:#ff667d;
+      --yellow:#ffd96a;
+      --shadow: 0 18px 50px rgba(0,0,0,.28);
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(55,214,255,.10), transparent 30%),
+        radial-gradient(circle at 100% 20%, rgba(168,137,255,.10), transparent 28%),
+        var(--bg);
+      min-height:100vh;
+    }
+
+    .wrap{max-width:1450px;margin:auto;padding:28px}
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:20px;
+      margin-bottom:26px;
+    }
+    h1{font-size:clamp(28px,4vw,48px);line-height:1;margin:0 0 10px;letter-spacing:-1.5px}
+    .subtitle{color:var(--muted);max-width:850px;font-size:16px;line-height:1.6}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--line);background:rgba(255,255,255,.03);
+      border-radius:999px;padding:9px 13px;color:#b8d7e8;font-size:13px;white-space:nowrap
+    }
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green)}
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
+      margin-bottom:24px;
+    }
+    .tool-card{
+      position:relative;
+      overflow:hidden;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015));
+      border-radius:18px;
+      padding:20px;
+      min-height:210px;
+      box-shadow:var(--shadow);
+      transition:.25s ease;
+      cursor:pointer;
+    }
+    .tool-card:hover{transform:translateY(-3px);border-color:#31566d}
+    .tool-card.active{outline:2px solid currentColor;outline-offset:1px}
+    .tool-card::after{
+      content:"";
+      position:absolute;inset:auto -40px -70px auto;
+      width:150px;height:150px;border-radius:50%;
+      background:currentColor;opacity:.07;filter:blur(4px)
+    }
+    .tool-card h2{margin:0;font-size:28px}
+    .tool-card p{color:var(--muted);font-size:14px;line-height:1.55}
+    .tool-card .focus{font-size:13px;color:#d8ecf8}
+    .siem{color:var(--cyan)}
+    .edr{color:var(--green)}
+    .xdr{color:var(--purple)}
+    .soar{color:var(--orange)}
+    .icon{
+      width:42px;height:42px;border-radius:12px;
+      display:grid;place-items:center;margin-bottom:16px;
+      background:rgba(255,255,255,.05);border:1px solid currentColor;
+      font-weight:800
+    }
+
+    .section{
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:rgba(12,23,34,.86);
+      box-shadow:var(--shadow);
+      margin:18px 0;
+      overflow:hidden;
+    }
+    .section-head{
+      padding:20px 22px;
+      border-bottom:1px solid var(--line);
+      display:flex;justify-content:space-between;align-items:center;gap:20px;
+    }
+    .section-head h3{margin:0;font-size:20px}
+    .section-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .legend{display:flex;flex-wrap:wrap;gap:8px}
+    .pill{
+      padding:7px 10px;border-radius:999px;border:1px solid var(--line);
+      font-size:12px;background:#0a1520;color:#c4d8e5
+    }
+
+    .matrix-wrap{overflow:auto}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1080px;
+    }
+    th,td{
+      border-bottom:1px solid #142b3b;
+      border-right:1px solid #142b3b;
+      padding:14px 12px;
+      text-align:center;
+      vertical-align:middle;
+      font-size:13px;
+    }
+    th{
+      position:sticky;top:0;z-index:2;
+      background:#0d1b27;color:#cce7f6;
+      font-size:12px;text-transform:uppercase;letter-spacing:.6px
+    }
+    th:first-child, td:first-child{
+      position:sticky;left:0;z-index:1;text-align:left;
+      background:#0d1b27;min-width:225px;
+    }
+    th:first-child{z-index:3}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    tr:hover td:first-child{background:#112330}
+    .cap{font-weight:700;color:#e6f4fa}
+    .small{display:block;color:var(--muted);font-size:11px;margin-top:4px;line-height:1.35}
+    .score{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:36px;height:28px;border-radius:8px;font-weight:800;font-size:12px
+    }
+    .s3{background:rgba(73,230,162,.15);color:#71f0b6;border:1px solid rgba(73,230,162,.28)}
+    .s2{background:rgba(255,217,106,.13);color:#ffe58b;border:1px solid rgba(255,217,106,.25)}
+    .s1{background:rgba(255,180,92,.12);color:#ffc985;border:1px solid rgba(255,180,92,.24)}
+    .s0{color:#577182}
+
+    .scenario-controls{
+      display:flex;flex-wrap:wrap;gap:10px;padding:17px 20px;border-bottom:1px solid var(--line)
+    }
+    button{
+      border:1px solid var(--line);
+      background:#0a1520;color:#d9edf8;
+      padding:10px 13px;border-radius:10px;
+      cursor:pointer;font-weight:700;
+      transition:.2s ease;
+    }
+    button:hover{background:#122636}
+    button.active{background:#18344a;border-color:#3b6c88}
+
+    .scenario{
+      display:grid;
+      grid-template-columns:340px 1fr;
+      gap:0;
+      min-height:410px;
+    }
+    .scenario-list{border-right:1px solid var(--line);padding:14px}
+    .scenario-item{
+      padding:14px;border-radius:12px;cursor:pointer;margin-bottom:8px;
+      border:1px solid transparent
+    }
+    .scenario-item:hover{background:#102130}
+    .scenario-item.active{background:#13293a;border-color:#2e536b}
+    .scenario-item strong{display:block;margin-bottom:5px}
+    .scenario-item span{font-size:12px;color:var(--muted);line-height:1.35}
+    .scenario-main{padding:24px}
+    .scenario-main h4{font-size:24px;margin:0 0 8px}
+    .scenario-main > p{color:var(--muted);line-height:1.6;margin-top:0}
+    .flow{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px
+    }
+    .step{
+      min-height:160px;border:1px solid var(--line);border-radius:14px;padding:15px;background:#0a1520
+    }
+    .step .num{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+    .step h5{margin:8px 0;font-size:16px}
+    .step p{font-size:12px;line-height:1.5;color:#aac2d1}
+    .tool-tag{display:inline-block;margin-top:7px;padding:5px 8px;border-radius:7px;font-size:11px;font-weight:800}
+    .t-siem{background:rgba(55,214,255,.12);color:var(--cyan)}
+    .t-edr{background:rgba(73,230,162,.12);color:var(--green)}
+    .t-xdr{background:rgba(168,137,255,.13);color:#baa7ff}
+    .t-soar{background:rgba(255,180,92,.13);color:#ffc172}
+
+    .takeaway{
+      margin-top:18px;
+      border-left:3px solid var(--cyan);
+      padding:12px 14px;background:rgba(55,214,255,.06);
+      color:#cde9f7;font-size:13px;line-height:1.55;border-radius:0 10px 10px 0
+    }
+
+    .compare-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+    .compare{
+      padding:20px;border-right:1px solid var(--line)
+    }
+    .compare:last-child{border-right:none}
+    .compare h4{margin:0 0 10px}
+    .compare ul{margin:0;padding-left:18px;color:#acc5d4;font-size:13px;line-height:1.6}
+
+    footer{
+      color:#617f90;text-align:center;font-size:12px;padding:28px 0 8px
+    }
+
+    @media(max-width:1000px){
+      .hero-grid{grid-template-columns:repeat(2,1fr)}
+      .scenario{grid-template-columns:1fr}
+      .scenario-list{border-right:0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:repeat(2,1fr)}
+      .flow{grid-template-columns:repeat(2,1fr)}
+      .compare-grid{grid-template-columns:repeat(2,1fr)}
+      .compare{border-bottom:1px solid var(--line)}
+    }
+    @media(max-width:650px){
+      .wrap{padding:16px}
+      header{flex-direction:column}
+      .hero-grid{grid-template-columns:1fr}
+      .scenario-list{grid-template-columns:1fr}
+      .flow{grid-template-columns:1fr}
+      .compare-grid{grid-template-columns:1fr}
+      .compare{border-right:0}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="badge"><span class="dot"></span> BLUE TEAM · SOC FUNDAMENTALS</div>
+      <h1>SOC Platform Capability Matrix</h1>
+      <div class="subtitle">
+        Una vista práctica para entender <strong>SIEM, EDR, XDR y SOAR</strong>: qué observan,
+        qué detectan, dónde actúan y cómo colaboran durante una investigación de seguridad.
+      </div>
+    </div>
+    <div class="badge">Modo didáctico · Escenarios SOC</div>
+  </header>
+
+  <section class="hero-grid">
+    <article class="tool-card siem" data-tool="siem">
+      <div class="icon">S</div>
+      <h2>SIEM</h2>
+      <p>Centraliza logs y eventos, correlaciona señales y permite investigar actividad a escala de toda la organización.</p>
+      <div class="focus"><strong>Piensa:</strong> “¿Qué está pasando en todos mis sistemas?”</div>
+    </article>
+    <article class="tool-card edr" data-tool="edr">
+      <div class="icon">E</div>
+      <h2>EDR</h2>
+      <p>Supervisa endpoints, procesos, ficheros y comportamiento del sistema para detectar y responder en el equipo afectado.</p>
+      <div class="focus"><strong>Piensa:</strong> “¿Qué está ocurriendo dentro de este endpoint?”</div>
+    </article>
+    <article class="tool-card xdr" data-tool="xdr">
+      <div class="icon">X</div>
+      <h2>XDR</h2>
+      <p>Relaciona telemetría de múltiples capas: endpoint, identidad, correo, red y cloud para reconstruir ataques completos.</p>
+      <div class="focus"><strong>Piensa:</strong> “¿Cómo se conecta esta actividad entre dominios?”</div>
+    </article>
+    <article class="tool-card soar" data-tool="soar">
+      <div class="icon">O</div>
+      <h2>SOAR</h2>
+      <p>Orquesta herramientas y automatiza tareas de respuesta mediante playbooks, integraciones y flujos de aprobación.</p>
+      <div class="focus"><strong>Piensa:</strong> “¿Qué acciones repetitivas puedo ejecutar automáticamente?”</div>
+    </article>
+  </section>
+
+  <section class="section" id="matrix">
+    <div class="section-head">
+      <div>
+        <h3>Matriz de capacidades</h3>
+        <p>3 = capacidad principal · 2 = buena capacidad · 1 = apoyo parcial · — = no es su función principal</p>
+      </div>
+      <div class="legend">
+        <span class="pill">Visibilidad</span>
+        <span class="pill">Detección</span>
+        <span class="pill">Investigación</span>
+        <span class="pill">Respuesta</span>
+      </div>
+    </div>
+    <div class="matrix-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Capacidad</th>
+            <th>SIEM</th>
+            <th>EDR</th>
+            <th>XDR</th>
+            <th>SOAR</th>
+            <th>Ejemplo SOC</th>
+          </tr>
+        </thead>
+        <tbody id="matrixBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <h3>Escenarios prácticos</h3>
+        <p>Selecciona un incidente y observa qué plataforma aporta valor en cada fase.</p>
+      </div>
+    </div>
+    <div class="scenario">
+      <div class="scenario-list" id="scenarioList"></div>
+      <div class="scenario-main" id="scenarioMain"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <h3>La idea clave</h3>
+        <p>No son cuatro productos equivalentes: se solapan, pero resuelven problemas distintos.</p>
+      </div>
+    </div>
+    <div class="compare-grid">
+      <div class="compare">
+        <h4 style="color:var(--cyan)">SIEM</h4>
+        <ul>
+          <li>Excelente para centralizar logs.</li>
+          <li>Correlación y búsquedas históricas.</li>
+          <li>Muy útil para cumplimiento y auditoría.</li>
+          <li>Necesita fuentes de datos bien integradas.</li>
+        </ul>
+      </div>
+      <div class="compare">
+        <h4 style="color:var(--green)">EDR</h4>
+        <ul>
+          <li>Máxima profundidad en endpoints.</li>
+          <li>Procesos, memoria, fichero y persistencia.</li>
+          <li>Puede aislar equipos y matar procesos.</li>
+          <li>No ofrece por sí solo visión completa del entorno.</li>
+        </ul>
+      </div>
+      <div class="compare">
+        <h4 style="color:var(--purple)">XDR</h4>
+        <ul>
+          <li>Une señales de varias capas.</li>
+          <li>Reduce alertas aisladas y mejora contexto.</li>
+          <li>Reconstruye cadenas de ataque.</li>
+          <li>Su alcance depende del ecosistema integrado.</li>
+        </ul>
+      </div>
+      <div class="compare">
+        <h4 style="color:var(--orange)">SOAR</h4>
+        <ul>
+          <li>Automatiza tareas y playbooks.</li>
+          <li>Conecta herramientas del SOC.</li>
+          <li>Reduce tiempo de respuesta manual.</li>
+          <li>No “detecta” por sí solo: actúa sobre señales recibidas.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Recurso formativo · SOC / Blue Team · SIEM · EDR · XDR · SOAR
+  </footer>
+</div>
+
+<script>
+const capabilities = [
+  ["Centralización de logs","SIEM recibe logs de firewalls, servidores, cloud y aplicaciones.",3,1,3,1],
+  ["Monitorización del endpoint","Actividad de procesos, usuarios, memoria, fichero y persistencia.",1,3,3,1],
+  ["Correlación multi-fuente","Relacionar un login, una alerta de correo y un evento de endpoint.",3,1,3,2],
+  ["Detección por comportamiento","Detectar PowerShell anómalo, ransomware o actividad sospechosa.",2,3,3,1],
+  ["Threat hunting","Buscar indicadores, patrones y anomalías históricas.",3,3,3,1],
+  ["Investigación de incidentes","Reconstruir qué pasó, cuándo, dónde y con qué usuario.",3,3,3,2],
+  ["Aislar un endpoint","Cortar la comunicación del equipo comprometido.",0,3,3,2],
+  ["Bloquear un indicador","Bloquear IP, dominio, hash o cuenta mediante integración.",1,2,2,3],
+  ["Automatizar respuesta","Ejecutar pasos repetitivos de contención y enriquecimiento.",1,1,2,3],
+  ["Gestión de casos","Agrupar evidencias, tareas, responsables y estado del incidente.",2,1,2,3],
+  ["Auditoría y cumplimiento","Retención de logs, consultas y evidencias para revisiones.",3,1,2,2],
+  ["Contexto cross-domain","Conectar identidad, correo, endpoint, red y cloud.",2,1,3,2]
+];
+
+function score(v){
+  if(v===3) return '<span class="score s3">3</span>';
+  if(v===2) return '<span class="score s2">2</span>';
+  if(v===1) return '<span class="score s1">1</span>';
+  return '<span class="score s0">—</span>';
+}
+document.getElementById('matrixBody').innerHTML = capabilities.map(c => `
+  <tr>
+    <td><span class="cap">${c[0]}</span><span class="small">${c[1]}</span></td>
+    <td>${score(c[2])}</td>
+    <td>${score(c[3])}</td>
+    <td>${score(c[4])}</td>
+    <td>${score(c[5])}</td>
+    <td style="text-align:left;color:#a9c0cf">${c[1]}</td>
+  </tr>
+`).join("");
+
+const scenarios = [
+  {
+    title:"Ransomware en un portátil",
+    short:"Un usuario ejecuta un archivo malicioso y comienzan cambios masivos en ficheros.",
+    desc:"El valor aparece al combinar profundidad en endpoint, contexto global y capacidad de contención rápida.",
+    steps:[
+      ["Detección","EDR observa procesos anómalos, cifrado masivo y comportamiento sospechoso.","EDR"],
+      ["Contexto","XDR relaciona endpoint, identidad, correo y posibles equipos adicionales.","XDR"],
+      ["Investigación","SIEM permite revisar eventos previos, accesos y actividad lateral histórica.","SIEM"],
+      ["Respuesta","SOAR ejecuta el playbook: aislar endpoint, bloquear hash y abrir caso.","SOAR"]
+    ],
+    takeaway:"EDR detecta muy bien el comportamiento local. XDR y SIEM añaden contexto. SOAR convierte la decisión de respuesta en acciones repetibles."
+  },
+  {
+    title:"Inicio de sesión imposible",
+    short:"La misma cuenta inicia sesión desde Madrid y Singapur con pocos minutos de diferencia.",
+    desc:"El incidente nace en identidad, pero necesita correlación y respuesta sobre múltiples sistemas.",
+    steps:[
+      ["Ingesta","SIEM recibe eventos de autenticación, VPN, cloud y directorio.","SIEM"],
+      ["Correlación","XDR combina identidad, dispositivo, IP y actividad de aplicaciones.","XDR"],
+      ["Validación","EDR comprueba si el endpoint habitual del usuario presenta actividad sospechosa.","EDR"],
+      ["Respuesta","SOAR fuerza reset de credenciales, revoca sesiones y notifica al SOC.","SOAR"]
+    ],
+    takeaway:"Un SIEM puede detectar la anomalía; XDR aporta relación entre dominios; SOAR acelera la contención de identidad."
+  },
+  {
+    title:"Phishing con malware",
+    short:"Un empleado abre un adjunto recibido por correo y se lanza PowerShell.",
+    desc:"El ataque cruza correo, identidad y endpoint, por lo que el contexto multidominio es especialmente útil.",
+    steps:[
+      ["Correo","XDR detecta el mensaje malicioso y relaciona destinatario, dominio y adjunto.","XDR"],
+      ["Endpoint","EDR registra PowerShell, árbol de procesos, descarga y persistencia.","EDR"],
+      ["Alcance","SIEM busca si otros usuarios recibieron el mismo indicador o dominio.","SIEM"],
+      ["Contención","SOAR elimina mensajes similares, bloquea IOC y aísla el equipo.","SOAR"]
+    ],
+    takeaway:"XDR destaca cuando una misma historia de ataque cruza varias capas tecnológicas."
+  },
+  {
+    title:"Movimiento lateral",
+    short:"Tras comprometer un equipo, el atacante intenta acceder a varios servidores internos.",
+    desc:"El SOC necesita unir autenticaciones, conexiones de red y procesos ejecutados en hosts diferentes.",
+    steps:[
+      ["Señal inicial","EDR detecta herramientas de administración o ejecución remota sospechosa.","EDR"],
+      ["Correlación","SIEM cruza logs de autenticación, firewall, servidores y Active Directory.","SIEM"],
+      ["Reconstrucción","XDR presenta la cadena de ataque entre usuarios, hosts y servicios.","XDR"],
+      ["Orquestación","SOAR deshabilita cuenta, bloquea IP y lanza tareas de contención.","SOAR"]
+    ],
+    takeaway:"El movimiento lateral raramente se entiende con una única fuente. Aquí la correlación SIEM/XDR es crítica."
+  },
+  {
+    title:"Exfiltración a cloud",
+    short:"Un usuario descarga gran volumen de datos y los sube a un servicio externo.",
+    desc:"La investigación mezcla identidad, proxy, endpoint, aplicaciones cloud y volumen de transferencia.",
+    steps:[
+      ["Detección","SIEM detecta volumen inusual mediante logs de proxy, DLP o cloud.","SIEM"],
+      ["Contexto","XDR une identidad, endpoint, aplicación SaaS y destino externo.","XDR"],
+      ["Validación","EDR revisa qué procesos accedieron a los datos y si hubo compresión previa.","EDR"],
+      ["Respuesta","SOAR bloquea sesión, destino y genera caso con evidencias.","SOAR"]
+    ],
+    takeaway:"SIEM aporta gran visibilidad histórica; XDR ayuda a convertir eventos aislados en una secuencia coherente."
+  }
+];
+
+function tagClass(tool){
+  return {"SIEM":"t-siem","EDR":"t-edr","XDR":"t-xdr","SOAR":"t-soar"}[tool] || "";
+}
+
+let activeScenario = 0;
+function renderScenarios(){
+  const list = document.getElementById("scenarioList");
+  list.innerHTML = scenarios.map((s,i)=>`
+    <div class="scenario-item ${i===activeScenario?'active':''}" onclick="selectScenario(${i})">
+      <strong>${s.title}</strong>
+      <span>${s.short}</span>
+    </div>`).join("");
+
+  const s = scenarios[activeScenario];
+  document.getElementById("scenarioMain").innerHTML = `
+    <h4>${s.title}</h4>
+    <p>${s.desc}</p>
+    <div class="flow">
+      ${s.steps.map((st,i)=>`
+        <div class="step">
+          <div class="num">Fase ${i+1}</div>
+          <h5>${st[0]}</h5>
+          <p>${st[1]}</p>
+          <span class="tool-tag ${tagClass(st[2])}">${st[2]}</span>
+        </div>`).join("")}
+    </div>
+    <div class="takeaway"><strong>Lectura SOC:</strong> ${s.takeaway}</div>
+  `;
+}
+window.selectScenario = function(i){
+  activeScenario = i;
+  renderScenarios();
+}
+renderScenarios();
+
+document.querySelectorAll(".tool-card").forEach(card=>{
+  card.addEventListener("click",()=>{
+    document.querySelectorAll(".tool-card").forEach(c=>c.classList.remove("active"));
+    card.classList.add("active");
+    const tool = card.dataset.tool.toUpperCase();
+    const rows = [...document.querySelectorAll("#matrixBody tr")];
+    const idx = {SIEM:1,EDR:2,XDR:3,SOAR:4}[tool];
+    rows.forEach(r=>{
+      const cell = r.children[idx];
+      const strong = cell.querySelector(".s3");
+      r.style.opacity = strong ? "1" : ".38";
+    });
+    document.getElementById("matrix").scrollIntoView({behavior:"smooth",block:"start"});
+  });
+});
+
+document.querySelector(".section-head").addEventListener("dblclick",()=>{
+  document.querySelectorAll("#matrixBody tr").forEach(r=>r.style.opacity="1");
+  document.querySelectorAll(".tool-card").forEach(c=>c.classList.remove("active"));
+});
+</script>
+</body>
+</html>
